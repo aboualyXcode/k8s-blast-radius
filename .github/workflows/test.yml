@@ -1,0 +1,18 @@
+# Plays every incident with its own solutions and fuzzes the shell.
+# Runs on every push and pull request; the game itself needs no build step.
+name: Play every incident
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Play all incidents and fuzz the shell
+        run: node tests/play-all-incidents.js
