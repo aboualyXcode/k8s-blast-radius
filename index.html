@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Blast Radius: a Kubernetes incident-response game</title>
+  <meta name="description" content="Be the on-call SRE for a concert-ticketing company. Debug 22 realistic Kubernetes production incidents with real kubectl against a cluster simulated in your browser.">
+  <meta name="theme-color" content="#1d1530">
+  <meta property="og:title" content="Blast Radius: a Kubernetes incident-response game">
+  <meta property="og:description" content="CrashLoopBackOff, OOMKilled, broken probes, NetworkPolicies, DNS, RBAC, quotas, full disks and blocked drains. 22 incidents, real kubectl, runs in your browser.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="wordmark" href="./" aria-label="Blast Radius"><img src="assets/favicon.svg" alt="" width="22" height="22"><span>Blast Radius</span></a>
+      <nav class="rail-wrap" aria-label="Incidents">
+        <ol id="rail" class="rail"></ol>
+      </nav>
+      <button id="about-btn" class="btn-quiet" type="button">About</button>
+    </header>
+
+    <main class="main">
+      <div id="pass-col" class="pass-col">
+        <article id="pass" class="pass" aria-labelledby="pass-title">
+          <div class="pass-band">
+            <span id="pass-sev" class="pass-sev"></span>
+            <p class="pass-access">All access<br>On-call</p>
+          </div>
+          <div class="pass-head">
+            <p id="pass-num" class="pass-num"></p>
+            <div id="pass-stars" class="pass-stars"></div>
+          </div>
+          <h1 id="pass-title" class="pass-title"></h1>
+          <p id="pass-tier" class="pass-tier"></p>
+          <ul id="pass-tags" class="pass-tags" aria-label="Topics"></ul>
+          <p id="alert" class="alert"></p>
+          <hr class="rule">
+          <div class="story">
+            <span class="avatar" aria-hidden="true">R</span>
+            <div>
+              <p class="story-who">Rhea, incident commander</p>
+              <p id="story-text" class="story-text"></p>
+            </div>
+          </div>
+          <details id="concept" class="concept" open>
+            <summary id="concept-title"></summary>
+            <div id="concept-body" class="concept-body"></div>
+          </details>
+          <hr class="rule">
+          <section aria-labelledby="steps-h">
+            <div class="steps-head">
+              <h2 id="steps-h">Steps</h2>
+              <span id="steps-count" class="steps-count"></span>
+            </div>
+            <ol id="steps" class="steps"></ol>
+            <p id="steps-more" class="steps-more"></p>
+            <div id="steps-after" class="step-actions" hidden></div>
+          </section>
+          <section id="files-wrap" class="files" aria-labelledby="files-h" hidden>
+            <hr class="rule">
+            <h2 id="files-h">Files</h2>
+            <ul id="files"></ul>
+          </section>
+          <div id="stamp" class="stamp" hidden>Resolved</div>
+        </article>
+      </div>
+
+      <div class="workspace">
+        <section id="map" class="map" aria-labelledby="map-title">
+          <div class="map-head">
+            <h2 id="map-title" class="map-title">Cluster <span>stagedoor-prod</span></h2>
+            <ul class="cp" aria-label="Control plane. Each light blinks when that component acts.">
+              <li data-cp="apiserver" title="API server: every kubectl command goes through it"><i></i>API server</li>
+              <li data-cp="etcd" title="etcd: the database that stores desired state"><i></i>etcd</li>
+              <li data-cp="scheduler" title="Scheduler: picks a node for each new pod"><i></i>Scheduler</li>
+              <li data-cp="controllers" title="Controllers: compare desired and actual state, then act"><i></i>Controllers</li>
+            </ul>
+            <button id="ff" class="chip-btn" type="button" aria-pressed="false">Fast-forward</button>
+          </div>
+          <div id="slo" class="slo" aria-label="Customer traffic"></div>
+          <div id="workloads" class="workloads"></div>
+          <div id="pending" class="pending" hidden>
+            <p class="map-label">Waiting to be scheduled</p>
+            <div id="pending-pods" class="pending-pods"></div>
+          </div>
+          <div id="nodes" class="nodes"></div>
+          <div class="map-foot">
+            <div>
+              <p class="map-label">Services</p>
+              <ul id="svc-list" class="svc-list"></ul>
+            </div>
+            <div id="storage" hidden>
+              <p class="map-label">Volumes</p>
+              <ul id="pvc-list" class="pvc-list"></ul>
+            </div>
+            <div id="hpas" hidden>
+              <p class="map-label">Autoscalers</p>
+              <div id="hpa-list"></div>
+            </div>
+          </div>
+          <ul id="legend" class="legend" aria-label="Pod status key">
+            <li class="st-run"><span class="lg-icon" data-icon="run"></span>Ready</li>
+            <li class="st-wait"><span class="lg-icon" data-icon="wait"></span>Starting, not ready or waiting</li>
+            <li class="st-fail"><span class="lg-icon" data-icon="fail"></span>Failing</li>
+            <li class="st-term"><span class="lg-icon" data-icon="term"></span>Terminating or evicted</li>
+          </ul>
+        </section>
+
+        <section id="editor" class="editor" aria-labelledby="ed-file" hidden>
+          <div class="ed-head">
+            <h2 id="ed-file" class="ed-file"></h2>
+            <span id="ed-status" class="ed-status" aria-live="polite"></span>
+            <button id="ed-close" class="chip-btn" type="button">Close</button>
+            <button id="ed-save" class="btn" type="button">Save and close</button>
+          </div>
+          <div class="ed-body">
+            <pre id="ed-gutter" class="ed-gutter" aria-hidden="true"></pre>
+            <textarea id="ed-text" class="ed-text" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="File contents" aria-describedby="ed-help"></textarea>
+          </div>
+          <p id="ed-help" class="ed-help">Tab indents. Ctrl+S saves. Esc closes.</p>
+        </section>
+
+        <section id="terminal" class="terminal" aria-label="Terminal">
+          <div class="term-head">
+            <p id="term-goal" class="term-goal" aria-live="off"></p>
+            <button id="term-stop" class="chip-btn" type="button" hidden>Stop watching</button>
+            <button id="term-runbook" class="chip-btn" type="button">Runbook</button>
+            <button id="term-help" class="chip-btn" type="button">Commands</button>
+          </div>
+          <div id="term-out" class="term-out" role="log" aria-label="Terminal output" tabindex="0"></div>
+          <div class="term-in">
+            <label id="term-prompt" class="t-prompt" for="term-input"></label>
+            <input id="term-input" class="term-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="type a command, or hint">
+          </div>
+          <div class="keybar" aria-label="Terminal keys">
+            <button type="button" data-key="Tab">Tab</button>
+            <button type="button" data-key="ArrowUp" aria-label="Previous command">↑</button>
+            <button type="button" data-key="ArrowDown" aria-label="Next command">↓</button>
+            <button type="button" data-key="ctrl-c">Ctrl+C</button>
+            <button type="button" data-key="-">-</button>
+            <button type="button" data-key="/">/</button>
+            <button type="button" data-key="=">=</button>
+            <button type="button" data-key="|">|</button>
+          </div>
+        </section>
+
+        <button id="pager" class="pager" type="button" hidden></button>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="dlg" class="dlg"><div id="dlg-body" class="dlg-body"></div></dialog>
+  <div id="announce" class="sr-only" aria-live="polite"></div>
+  <noscript><p style="padding:20px">Blast Radius needs JavaScript: the whole Kubernetes cluster is simulated in your browser.</p></noscript>
+
+  <script src="js/yaml.js"></script>
+  <script src="js/apps.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/manifest.js"></script>
+  <script src="js/kubectl.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
